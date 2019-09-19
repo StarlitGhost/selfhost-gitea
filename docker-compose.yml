@@ -1,0 +1,47 @@
+version: '3.5'
+
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    external_links:
+      - postgres
+    networks:
+      - web
+      - postgres_network
+    ports:
+      - "222:22"
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      USER_UID: 1000
+      USER_GID: 1000
+      SSH_DOMAIN: git.${DOMAIN_HOME}
+      SSH_PORT: 222
+      DB_TYPE: postgres
+      DB_HOST: postgres:5432
+      DB_NAME: gitea
+      DB_USER: "${POSTGRES_USER}"
+      DB_PASSWD: "${POSTGRES_PW}"
+    volumes:
+      - gitea:/data
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.backend=gitea"
+      - "traefik.frontend.rule=Host:git.${DOMAIN_HOME}"
+      - "traefik.port=3000"
+      - "com.centurylinklabs.watchtower.enable=true"
+    restart: unless-stopped
+
+volumes:
+  gitea:
+
+networks:
+  web:
+    external: true
+  postgres_network:
+    external: true
+
+# vim: tabstop=2 shiftwidth=2 expandtab
